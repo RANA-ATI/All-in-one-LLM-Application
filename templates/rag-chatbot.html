@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RAG Customized Chatbot</title>
+    <link href="static/img/finaliconbot.png" rel="icon" />
+    <link href="static/img/finaliconbot.png" rel="finaliconbot" />
+    <link href="static/css/style_chatbot.css" rel="stylesheet" />
+    <link
+      href="static/vendor/bootstrap/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="static/vendor/bootstrap-icons/bootstrap-icons.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <center>
+      <br /><br />
+      <h1 style="font-size: 50px; color: #012970">
+        <b>RAG Customized LLM for Q/A</b>
+      </h1>
+      <div id="chat-container">
+        <div id="chat-box">
+          <ul id="chat-list">
+            {% for message in chat_history_rag %} {% if message.sender == 'user'
+            %}
+            <li class="user">
+              <div class="user-message">
+                {{ message.text }}
+                <img
+                  src="static/img/man.png"
+                  alt="User Avatar"
+                  class="avatar"
+                />
+              </div>
+            </li>
+            {% else %}
+            <li class="bot">
+              <div class="bot-message">
+                <img
+                  src="static/img/bot.png"
+                  alt="Bot Avatar"
+                  class="avatar"
+                />{{ message.text }}
+              </div>
+            </li>
+            {% endif %} {% endfor %}
+          </ul>
+        </div>
+      </div>
+      <div id="chat-container">
+        <div style="padding-left: 2em">
+          <form id="user-input-form">
+            <input
+              type="text"
+              id="user-input"
+              class="form-group"
+              placeholder="Type your query..."
+            />
+            <center>
+              <button
+                type="submit"
+                class="btn-get-started scrollto d-inline-flex align-items-center justify-content-center align-self-center"
+              >
+                <span>Send</span>
+                <i class="bi bi-arrow-right"></i>
+              </button>
+            </center>
+          </form>
+        </div>
+      </div>
+    </center>
+    <script>
+      // JavaScript code to handle form submission
+      document.addEventListener("DOMContentLoaded", function () {
+        var form = document.getElementById("user-input-form");
+        form.addEventListener("submit", function (event) {
+          event.preventDefault(); // Prevent default form submission
+
+          var userInput = document.getElementById("user-input").value;
+          if (!userInput.trim()) return; // If user input is empty, do nothing
+
+          // Send AJAX request to Flask backend
+          var xhr = new XMLHttpRequest();
+          xhr.open("POST", "/rag-chatbot", true);
+          xhr.setRequestHeader(
+            "Content-Type",
+            "application/x-www-form-urlencoded"
+          );
+          xhr.onload = function () {
+            if (xhr.status === 200) {
+              // Update chat interface with user input and bot response
+              var chatList = document.getElementById("chat-list");
+              var userAvatar =
+                '<img src="static/img/man.png" alt="User Avatar" class="avatar">';
+              var botAvatar =
+                '<img src="static/img/bot.png" alt="Bot Avatar" class="avatar">';
+              chatList.innerHTML +=
+                '<li class="user"><div class="user-message">' +
+                userInput +
+                userAvatar +
+                "</div></li>";
+              chatList.innerHTML +=
+                '<li class="bot"><div class="bot-message">' +
+                botAvatar +
+                xhr.responseText +
+                "</div></li>";
+              document.getElementById("user-input").value = ""; // Clear input field
+              // Optionally, you can scroll to the bottom of the chat box
+              chatList.scrollTop = chatList.scrollHeight;
+            } else {
+              console.error("Request failed. Status: " + xhr.status);
+            }
+          };
+          xhr.send("user_input=" + encodeURIComponent(userInput));
+        });
+      });
+    </script>
+  </body>
+</html>
